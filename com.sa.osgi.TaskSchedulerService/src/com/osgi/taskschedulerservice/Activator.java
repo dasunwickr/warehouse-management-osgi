@@ -1,22 +1,23 @@
-package com.osgi.taskscheduler;
+package com.osgi.taskschedulerservice;
+
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
+import com.osgi.taskschedulerservice.impl.TaskSchedulerImpl;
+
 public class Activator implements BundleActivator {
 
-	private static BundleContext context;
+    private TaskSchedulerImpl taskScheduler;
 
-	static BundleContext getContext() {
-		return context;
-	}
+    @Override
+    public void start(BundleContext context) throws Exception {
+        taskScheduler = new TaskSchedulerImpl();
+        taskScheduler.start(context);
+    }
 
-	public void start(BundleContext bundleContext) throws Exception {
-		Activator.context = bundleContext;
-	}
-
-	public void stop(BundleContext bundleContext) throws Exception {
-		Activator.context = null;
-	}
-
+    @Override
+    public void stop(BundleContext context) throws Exception {
+        taskScheduler.stop();
+    }
 }

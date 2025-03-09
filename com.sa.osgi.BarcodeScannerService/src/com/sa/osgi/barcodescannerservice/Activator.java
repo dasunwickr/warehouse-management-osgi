@@ -1,25 +1,21 @@
 package com.sa.osgi.barcodescannerservice;
 
+import com.sa.osgi.barcodescannerservice.impl.BarcodeScannerImpl;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
 public class Activator implements BundleActivator {
 
-    private static BundleContext context;
+    private BarcodeScannerImpl barcodeScanner;
 
-    static BundleContext getContext() {
-        return context;
+    @Override
+    public void start(BundleContext context) throws Exception {
+        barcodeScanner = new BarcodeScannerImpl();
+        barcodeScanner.start(context);
     }
 
     @Override
-    public void start(BundleContext bundleContext) throws Exception {
-        Activator.context = bundleContext;
-        System.out.println("Barcode Scanner Service started.");
-    }
-
-    @Override
-    public void stop(BundleContext bundleContext) throws Exception {
-        Activator.context = null;
-        System.out.println("Barcode Scanner Service stopped.");
+    public void stop(BundleContext context) throws Exception {
+        barcodeScanner.stop();
     }
 }

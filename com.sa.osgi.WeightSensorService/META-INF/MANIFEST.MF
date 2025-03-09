@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Weightsensor
 Bundle-SymbolicName: com.sa.osgi.WeightSensorService
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: com.osgi.weightsensor.Activator
+Bundle-Activator: com.sa.osgi.weightsensorservice.Activator
 Bundle-Vendor: MTIT
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Automatic-Module-Name: com.osgi.weightsensor

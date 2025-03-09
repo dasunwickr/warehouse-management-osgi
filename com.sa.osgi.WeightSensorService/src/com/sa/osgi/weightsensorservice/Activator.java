@@ -1,22 +1,21 @@
-package com.osgi.weightsensor;
+package com.sa.osgi.weightsensorservice;
 
+import com.sa.osgi.weightsensorservice.impl.WeightSensorImpl;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
 public class Activator implements BundleActivator {
 
-	private static BundleContext context;
+    private WeightSensorImpl weightSensor;
 
-	static BundleContext getContext() {
-		return context;
-	}
+    @Override
+    public void start(BundleContext context) throws Exception {
+        weightSensor = new WeightSensorImpl();
+        weightSensor.start(context);
+    }
 
-	public void start(BundleContext bundleContext) throws Exception {
-		Activator.context = bundleContext;
-	}
-
-	public void stop(BundleContext bundleContext) throws Exception {
-		Activator.context = null;
-	}
-
+    @Override
+    public void stop(BundleContext context) throws Exception {
+        weightSensor.stop();
+    }
 }
