@@ -1,0 +1,171 @@
+package com.sa.osgi.orderprocessingservice.impl;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
+
+import com.sa.osgi.orderprocessingservice.IOrderProcessing;
+
+import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.logging.Logger;
+
+public class OrderProcessingImpl implements IOrderProcessing {
+
+    private static final String DATA_DIR = "D:/projects/sliit/y3s2/sa/warehouse-management-osgi/data";
+    private static final String DATA_FILE = DATA_DIR + "/orders.txt";
+
+    private Map<String, Order> orders = new HashMap<>();
+    private ServiceRegistration<IOrderProcessing> registration;
+
+    private static final Logger LOGGER = Logger.getLogger(OrderProcessingImpl.class.getName());
+
+    public void start(BundleContext context) {
+        // Ensure the 'data' directory exists
+        File dataDir = new File(DATA_DIR);
+        if (!dataDir.exists()) {
+            boolean success = dataDir.mkdirs();
+            if (!success) {
+                LOGGER.severe("Failed to create directory: " + dataDir.getAbsolutePath());
+                return;
+            }
+        }
+        LOGGER.info("Data directory created: " + dataDir.exists());
+
+        loadOrders();
+        registration = context.registerService(IOrderProcessing.class, this, null);
+        LOGGER.info("Order Processing Service started.");
+
+        // Start the scanner in the main thread
+        startScanner();
+    }
+
+    public void stop() {
+        saveOrders();
+        registration.unregister();
+        LOGGER.info("Order Processing Service stopped.");
+    }
+
+    @Override
+    public void processOrder(String orderId) {
+        orders.get(orderId).setStatus("Processed");
+        saveOrders();
+        System.out.println("📦 Order processed: " + orderId);
+    }
+
+    @Override
+    public double getOrderWeight(String orderId) {
+        return orders.get(orderId).getWeight();
+    }
+
+    @Override
+    public void addOrder(String orderId, double weight) {
+        if (orderId == null || orderId.trim().isEmpty()) {
+            LOGGER.warning("Order ID cannot be empty.");
+            return;
+        }
+        if (weight <= 0) {
+            LOGGER.warning("Weight must be greater than zero.");
+            return;
+        }
+
+        Order order = new Order();
+        order.setWeight(weight);
+        order.setStatus("Pending");
+        orders.put(orderId, order);
+        saveOrders();
+        System.out.println("📦 Order added: " + orderId + ", Weight: " + weight);
+    }
+
+    private void loadOrders() {
+        File file = new File(DATA_FILE);
+
+        // If the file doesn't exist, create it
+        try {
+            ensureFileExists(file);
+        } catch (IOException e) {
+            LOGGER.severe("Error creating file: " + file.getAbsolutePath());
+            return;
+        }
+
+        // Load data from the file
+        try {
+            loadFromFile(file);
+        } catch (IOException e) {
+            LOGGER.severe("Error loading data from file: " + file.getAbsolutePath());
+        }
+    }
+
+    private void saveOrders() {
+        File file = new File(DATA_FILE);
+
+        // Save data to the file
+        try {
+            saveToFile(file);
+        } catch (IOException e) {
+            LOGGER.severe("Error saving data to file: " + file.getAbsolutePath());
+        }
+    }
+
+    private void startScanner() {
+        Scanner scanner = new Scanner(System.in); // Do NOT close this scanner
+        System.out.println("[Order Processing] Starting interactive mode. Type 'exit' to quit.");
+
+        while (true) {
+            System.out.print("[Order Processing] Enter order ID: ");
+            String orderId = scanner.nextLine();
+            if (orderId.equalsIgnoreCase("exit")) break;
+
+            System.out.print("[Order Processing] Enter weight (kg): ");
+            double weight = Double.parseDouble(scanner.nextLine());
+            addOrder(orderId, weight);
+        }
+
+        System.out.println("[Order Processing] Interactive mode stopped.");
+        // DO NOT CLOSE THE SCANNER HERE
+    }
+
+    private void ensureFileExists(File file) throws IOException {
+        if (!file.exists()) {
+            boolean success = file.createNewFile();
+            if (!success) {
+                throw new IOException("Failed to create file: " + file.getAbsolutePath());
+            }
+        }
+    }
+
+    private void loadFromFile(File file) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(":");
+                if (parts.length == 3) {
+                    Order order = new Order();
+                    order.setWeight(Double.parseDouble(parts[1]));
+                    order.setStatus(parts[2]);
+                    orders.put(parts[0], order);
+                }
+            }
+        }
+    }
+
+    private void saveToFile(File file) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (Map.Entry<String, Order> entry : orders.entrySet()) {
+                writer.write(entry.getKey() + ":" + entry.getValue().getWeight() + ":" + entry.getValue().getStatus());
+                writer.newLine();
+            }
+        }
+    }
+
+    private static class Order {
+        private double weight;
+        private String status;
+
+        public double getWeight() { return weight; }
+        public void setWeight(double weight) { this.weight = weight; }
+        public String getStatus() { return status; }
+        public void setStatus(String status) {this.status = status;}
+    }
+}
