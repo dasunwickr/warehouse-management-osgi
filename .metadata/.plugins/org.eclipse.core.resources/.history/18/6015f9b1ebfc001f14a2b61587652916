@@ -1,0 +1,6 @@
+package com.example.barcodescanner;
+
+public interface IBarcodeScanner {
+    String scanPackage(String packageId);
+    void addPackage(String id, String product);
+}
