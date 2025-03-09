@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Inventory
+Bundle-SymbolicName: com.sa.osgi.InventoryManagerService
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: com.sa.osgi.inventory.Activator
+Bundle-Vendor: MTIT
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Automatic-Module-Name: com.sa.osgi.Inventory
+Import-Package: org.osgi.framework;version="1.3.0"
+Bundle-ActivationPolicy: lazy
