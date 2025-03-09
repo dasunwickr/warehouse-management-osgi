@@ -1,6 +1,5 @@
 package com.sa.osgi.weightsensorservice.impl;
 
-
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
@@ -34,16 +33,22 @@ public class WeightSensorImpl implements IPackageWeightSensor {
         }
         LOGGER.info("Data directory created: " + dataDir.exists());
 
+        // Load existing weights from the file
         loadWeights();
+
+        // Register the service with the OSGi framework
         registration = context.registerService(IPackageWeightSensor.class, this, null);
         LOGGER.info("Package Weight Sensor Service started.");
 
-        // Start the scanner in the main thread
+        // Start interactive mode for recording weights
         startScanner();
     }
 
     public void stop() {
+        // Save weights to the file before stopping
         saveWeights();
+
+        // Unregister the service
         registration.unregister();
         LOGGER.info("Package Weight Sensor Service stopped.");
     }
@@ -64,6 +69,7 @@ public class WeightSensorImpl implements IPackageWeightSensor {
             return;
         }
 
+        // Record the weight in memory and save it to the file
         weights.put(packageId, weight);
         saveWeights();
         System.out.println("⚖️ Weight recorded for package: " + packageId + ", Weight: " + weight);
@@ -80,9 +86,17 @@ public class WeightSensorImpl implements IPackageWeightSensor {
             return;
         }
 
-        // Load data from the file
-        try {
-            loadFromFile(file);
+        // Load data from the file into memory
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(":");
+                if (parts.length == 2) {
+                    String packageId = parts[0].trim();
+                    double weight = Double.parseDouble(parts[1].trim());
+                    weights.put(packageId, weight);
+                }
+            }
         } catch (IOException e) {
             LOGGER.severe("Error loading data from file: " + file.getAbsolutePath());
         }
@@ -91,9 +105,12 @@ public class WeightSensorImpl implements IPackageWeightSensor {
     private void saveWeights() {
         File file = new File(DATA_FILE);
 
-        // Save data to the file
-        try {
-            saveToFile(file);
+        // Save data from memory to the file
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (Map.Entry<String, Double> entry : weights.entrySet()) {
+                writer.write(entry.getKey() + ":" + entry.getValue());
+                writer.newLine();
+            }
         } catch (IOException e) {
             LOGGER.severe("Error saving data to file: " + file.getAbsolutePath());
         }
@@ -122,27 +139,6 @@ public class WeightSensorImpl implements IPackageWeightSensor {
             boolean success = file.createNewFile();
             if (!success) {
                 throw new IOException("Failed to create file: " + file.getAbsolutePath());
-            }
-        }
-    }
-
-    private void loadFromFile(File file) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(":");
-                if (parts.length == 2) {
-                    weights.put(parts[0], Double.parseDouble(parts[1]));
-                }
-            }
-        }
-    }
-
-    private void saveToFile(File file) throws IOException {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            for (Map.Entry<String, Double> entry : weights.entrySet()) {
-                writer.write(entry.getKey() + ":" + entry.getValue());
-                writer.newLine();
             }
         }
     }

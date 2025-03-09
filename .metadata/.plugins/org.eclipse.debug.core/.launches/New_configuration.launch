@@ -10,13 +10,7 @@
     <booleanAttribute key="default" value="true"/>
     <booleanAttribute key="default_auto_start" value="true"/>
     <intAttribute key="default_start_level" value="4"/>
-    <setAttribute key="deselected_workspace_bundles">
-        <setEntry value="BarcodeScanner"/>
-        <setEntry value="com.sa.osgi.DeliveryScheduleService"/>
-        <setEntry value="com.sa.osgi.InventoryManagerService"/>
-        <setEntry value="com.sa.osgi.TaskSchedulerService"/>
-        <setEntry value="com.sa.osgi.WorkerMobileAppService"/>
-    </setAttribute>
+    <setAttribute key="deselected_workspace_bundles"/>
     <booleanAttribute key="includeOptional" value="true"/>
     <booleanAttribute key="org.eclipse.debug.core.ATTR_FORCE_SYSTEM_CONSOLE_ENCODING" value="false"/>
     <booleanAttribute key="org.eclipse.jdt.launching.ATTR_ATTR_USE_ARGFILE" value="false"/>
@@ -38,9 +32,14 @@
         <setEntry value="org.osgi.service.event@default:default"/>
     </setAttribute>
     <setAttribute key="selected_workspace_bundles">
+        <setEntry value="BarcodeScanner@default:default"/>
+        <setEntry value="com.sa.osgi.DeliveryScheduleService@default:default"/>
         <setEntry value="com.sa.osgi.OrderProcessingService@default:default"/>
         <setEntry value="com.sa.osgi.ShippingCostCalculatorService@default:default"/>
+        <setEntry value="com.sa.osgi.TaskSchedulerService@default:default"/>
         <setEntry value="com.sa.osgi.WeightSensorService@default:default"/>
+        <setEntry value="com.sa.osgi.WorkerMobileAppService@default:default"/>
+        <setEntry value="com.sa.osgi.inventorymanagerservice@default:default"/>
     </setAttribute>
     <booleanAttribute key="show_selected_only" value="false"/>
     <booleanAttribute key="tracing" value="false"/>

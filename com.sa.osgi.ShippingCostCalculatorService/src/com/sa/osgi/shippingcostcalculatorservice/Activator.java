@@ -6,7 +6,11 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
-import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Activator implements BundleActivator {
 
@@ -23,32 +27,29 @@ public class Activator implements BundleActivator {
             IOrderProcessing orderProcessing = context.getService(orderProcessingRef);
             IPackageWeightSensor weightSensor = context.getService(weightSensorRef);
 
-            // Start interactive input
-            Scanner scanner = new Scanner(System.in);
-            System.out.println("[Shipping Cost Calculator] Starting interactive mode. Type 'exit' to quit.");
+            System.out.println("[Shipping Cost Calculator] Starting calculations...");
 
-            while (true) {
-                System.out.print("[Shipping Cost Calculator] Enter order ID: ");
-                String orderId = scanner.nextLine();
-                if (orderId.equalsIgnoreCase("exit")) break;
+            // Read orders from a text file
+            Map<String, Double> orders = readDataFromFile("D:/projects/sliit/y3s2/sa/warehouse-management-osgi/data/orders.txt");
 
-                double orderWeight = orderProcessing.getOrderWeight(orderId);
-                System.out.println("📦 Order weight: " + orderWeight + " kg");
+            // Calculate shipping costs for each order
+            for (Map.Entry<String, Double> entry : orders.entrySet()) {
+                String orderId = entry.getKey();
+                double orderWeight = entry.getValue();
 
-                System.out.print("[Shipping Cost Calculator] Enter package ID: ");
-                String packageId = scanner.nextLine();
-                if (packageId.equalsIgnoreCase("exit")) break;
+                // Retrieve additional package weights
+                double totalWeight = orderWeight;
+                System.out.println("📦 Order ID: " + orderId + ", Base Weight: " + orderWeight + " kg");
 
-                double packageWeight = weightSensor.getWeight(packageId);
-                System.out.println("📦 Package weight: " + packageWeight + " kg");
+                // Example: Add package weights dynamically (if needed)
+                // This step can be customized based on business logic
 
-                // Calculate shipping cost
-                double totalWeight = orderWeight + packageWeight;
-                double shippingCost = calculateShippingCost(totalWeight);
-                System.out.println("🚚 Shipping cost: $" + shippingCost);
+                // Calculate shipping cost ($2 per kg)
+                double shippingCost = totalWeight * 2;
+                System.out.println("🚚 Shipping cost for Order ID " + orderId + ": $" + shippingCost);
             }
 
-            System.out.println("[Shipping Cost Calculator] Interactive mode stopped.");
+            System.out.println("[Shipping Cost Calculator] Calculations completed.");
         } else {
             System.out.println("Required services are not available.");
         }
@@ -68,10 +69,24 @@ public class Activator implements BundleActivator {
     }
 
     /**
-     * Calculates the shipping cost based on total weight.
-     * Example formula: $2 per kg.
+     * Reads data from a text file in the format "id:weight".
      */
-    private double calculateShippingCost(double totalWeight) {
-        return totalWeight * 2.0; // $2 per kg
+    private Map<String, Double> readDataFromFile(String filePath) {
+        Map<String, Double> data = new HashMap<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(":");
+                if (parts.length == 2) {
+                    String id = parts[0].trim();
+                    double weight = Double.parseDouble(parts[1].trim());
+                    data.put(id, weight);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading file: " + filePath);
+            e.printStackTrace();
+        }
+        return data;
     }
 }

@@ -7,6 +7,7 @@ Bundle-Activator: com.sa.osgi.orderprocessingservice.Activator
 Bundle-Vendor: MTIT
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Automatic-Module-Name: com.osgi.orderprocessing
-Import-Package: org.osgi.framework;version="1.3.0"
+Import-Package: com.sa.osgi.barcodescannerservice,
+ org.osgi.framework;version="1.3.0"
 Bundle-ActivationPolicy: lazy
 Export-Package: com.sa.osgi.orderprocessingservice

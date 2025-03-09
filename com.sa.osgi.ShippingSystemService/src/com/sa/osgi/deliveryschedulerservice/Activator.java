@@ -1,13 +1,16 @@
 package com.sa.osgi.deliveryschedulerservice;
 
+import com.sa.osgi.orderprocessingservice.IOrderProcessing;
+import com.sa.osgi.weightsensorservice.IPackageWeightSensor;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
-import com.sa.osgi.orderprocessingservice.IOrderProcessing;
-import com.sa.osgi.weightsensorservice.IPackageWeightSensor;
-
-import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Activator implements BundleActivator {
 
@@ -24,27 +27,36 @@ public class Activator implements BundleActivator {
             IOrderProcessing orderProcessing = context.getService(orderProcessingRef);
             IPackageWeightSensor weightSensor = context.getService(weightSensorRef);
 
-            // Start interactive input
-            Scanner scanner = new Scanner(System.in);
-            System.out.println("[Delivery Scheduler] Starting interactive mode. Type 'exit' to quit.");
+            System.out.println("[Delivery Scheduler] Starting delivery scheduling...");
 
-            while (true) {
-                System.out.print("[Delivery Scheduler] Enter order ID: ");
-                String orderId = scanner.nextLine();
-                if (orderId.equalsIgnoreCase("exit")) break;
+            // Read orders from a text file
+            Map<String, Double> orders = readDataFromFile("D:/projects/sliit/y3s2/sa/warehouse-management-osgi/data/orders.txt");
 
-                double weight = orderProcessing.getOrderWeight(orderId);
-                System.out.println("🚚 Order weight: " + weight);
+            // Schedule deliveries for each order
+            for (Map.Entry<String, Double> entry : orders.entrySet()) {
+                String orderId = entry.getKey();
+                double orderWeight = entry.getValue();
 
-                System.out.print("[Delivery Scheduler] Enter package ID: ");
-                String packageId = scanner.nextLine();
-                if (packageId.equalsIgnoreCase("exit")) break;
+                // Retrieve additional package weights dynamically
+                double totalWeight = orderWeight; // Base weight
+                System.out.println("📦 Order ID: " + orderId + ", Base Weight: " + orderWeight + " kg");
 
-                double packageWeight = weightSensor.getWeight(packageId);
-                System.out.println("🚚 Package weight: " + packageWeight);
+                // Add package weights dynamically (if needed)
+                // Example: Simulate retrieving package weights from WeightSensorService
+                double packageWeight = weightSensor.getWeight(orderId);
+                totalWeight += packageWeight;
+                System.out.println("📦 Additional Package Weight: " + packageWeight + " kg");
+
+                // Calculate shipping cost ($2 per kg)
+                double shippingCost = totalWeight * 2;
+                System.out.println("🚚 Shipping cost for Order ID " + orderId + ": $" + shippingCost);
+
+                // Determine delivery type based on shipping cost
+                String deliveryType = shippingCost > 15 ? "Priority Shipping" : "Standard Shipping";
+                System.out.println("🚚 Scheduled delivery for Order ID " + orderId + ": " + deliveryType + " ($" + shippingCost + ")");
             }
 
-            System.out.println("[Delivery Scheduler] Interactive mode stopped.");
+            System.out.println("[Delivery Scheduler] Delivery scheduling completed.");
         } else {
             System.out.println("Required services are not available.");
         }
@@ -61,5 +73,27 @@ public class Activator implements BundleActivator {
         }
 
         System.out.println("Delivery Scheduler Service stopped.");
+    }
+
+    /**
+     * Reads data from a text file in the format "id:weight".
+     */
+    private Map<String, Double> readDataFromFile(String filePath) {
+        Map<String, Double> data = new HashMap<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(":");
+                if (parts.length == 2) {
+                    String id = parts[0].trim();
+                    double weight = Double.parseDouble(parts[1].trim());
+                    data.put(id, weight);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading file: " + filePath);
+            e.printStackTrace();
+        }
+        return data;
     }
 }

@@ -1,4 +1,5 @@
+B001:Laptop
 P23110:Gun
-P001:Dasun 11
+P001:Laptop
 P002:Phone
 P10004:+Laptop
