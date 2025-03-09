@@ -56,6 +56,16 @@ public class TaskSchedulerImpl implements ITaskScheduler {
         System.out.println("📝 Task assigned to Employee ID " + empId + ": " + task);
     }
 
+    @Override
+    public String getTasksForEmployee(String empId) {
+        return tasks.getOrDefault(empId, "No tasks assigned.");
+    }
+
+    @Override
+    public Map<String, String> getAllTasks() {
+        return new HashMap<>(tasks); 
+    }
+
     private void loadTasks() {
         File file = new File(DATA_FILE);
         try {

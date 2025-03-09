@@ -1,4 +1,2 @@
-P001:Laptop
-P003:Jack Daniels
-ecit:Google Pixel
-P002:Phone
+001:Laptop
+p001:package 01

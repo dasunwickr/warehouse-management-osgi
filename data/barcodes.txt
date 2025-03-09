@@ -1,5 +1,0 @@
-B001:Laptop
-P23110:Gun
-P001:Laptop
-P002:Phone
-P10004:+Laptop

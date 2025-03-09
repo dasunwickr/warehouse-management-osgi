@@ -22,7 +22,6 @@ public class WeightSensorImpl implements IPackageWeightSensor {
     private static final Logger LOGGER = Logger.getLogger(WeightSensorImpl.class.getName());
 
     public void start(BundleContext context) {
-        // Ensure the 'data' directory exists
         File dataDir = new File(DATA_DIR);
         if (!dataDir.exists()) {
             boolean success = dataDir.mkdirs();
@@ -33,22 +32,15 @@ public class WeightSensorImpl implements IPackageWeightSensor {
         }
         LOGGER.info("Data directory created: " + dataDir.exists());
 
-        // Load existing weights from the file
         loadWeights();
-
-        // Register the service with the OSGi framework
         registration = context.registerService(IPackageWeightSensor.class, this, null);
         LOGGER.info("Package Weight Sensor Service started.");
 
-        // Start interactive mode for recording weights
         startScanner();
     }
 
     public void stop() {
-        // Save weights to the file before stopping
         saveWeights();
-
-        // Unregister the service
         registration.unregister();
         LOGGER.info("Package Weight Sensor Service stopped.");
     }
@@ -60,41 +52,33 @@ public class WeightSensorImpl implements IPackageWeightSensor {
 
     @Override
     public void recordWeight(String packageId, double weight) {
-        if (packageId == null || packageId.trim().isEmpty()) {
-            LOGGER.warning("Package ID cannot be empty.");
-            return;
-        }
-        if (weight <= 0) {
-            LOGGER.warning("Weight must be greater than zero.");
+        if (packageId == null || packageId.trim().isEmpty() || weight <= 0) {
+            LOGGER.warning("Invalid package ID or weight.");
             return;
         }
 
         // Record the weight in memory and save it to the file
         weights.put(packageId, weight);
         saveWeights();
-        System.out.println("⚖️ Weight recorded for package: " + packageId + ", Weight: " + weight);
+        System.out.println("⚖️ Weight recorded for package: " + packageId + ", Weight: " + weight + " kg");
+    }
+
+    @Override
+    public Map<String, Double> getAllWeights() {
+        return new HashMap<>(weights); // Return a copy of the weights map to avoid direct modification
     }
 
     private void loadWeights() {
         File file = new File(DATA_FILE);
-
-        // If the file doesn't exist, create it
         try {
             ensureFileExists(file);
-        } catch (IOException e) {
-            LOGGER.severe("Error creating file: " + file.getAbsolutePath());
-            return;
-        }
-
-        // Load data from the file into memory
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(":");
-                if (parts.length == 2) {
-                    String packageId = parts[0].trim();
-                    double weight = Double.parseDouble(parts[1].trim());
-                    weights.put(packageId, weight);
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] parts = line.split(":");
+                    if (parts.length == 2) {
+                        weights.put(parts[0].trim(), Double.parseDouble(parts[1].trim()));
+                    }
                 }
             }
         } catch (IOException e) {
@@ -104,8 +88,6 @@ public class WeightSensorImpl implements IPackageWeightSensor {
 
     private void saveWeights() {
         File file = new File(DATA_FILE);
-
-        // Save data from memory to the file
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             for (Map.Entry<String, Double> entry : weights.entrySet()) {
                 writer.write(entry.getKey() + ":" + entry.getValue());
@@ -117,9 +99,8 @@ public class WeightSensorImpl implements IPackageWeightSensor {
     }
 
     private void startScanner() {
-        Scanner scanner = new Scanner(System.in); // Do NOT close this scanner
+        Scanner scanner = new Scanner(System.in);
         System.out.println("[Weight Sensor] Starting interactive mode. Type 'exit' to quit.");
-
         while (true) {
             System.out.print("[Weight Sensor] Enter package ID: ");
             String packageId = scanner.nextLine();
@@ -129,9 +110,7 @@ public class WeightSensorImpl implements IPackageWeightSensor {
             double weight = Double.parseDouble(scanner.nextLine());
             recordWeight(packageId, weight);
         }
-
         System.out.println("[Weight Sensor] Interactive mode stopped.");
-        // DO NOT CLOSE THE SCANNER HERE
     }
 
     private void ensureFileExists(File file) throws IOException {

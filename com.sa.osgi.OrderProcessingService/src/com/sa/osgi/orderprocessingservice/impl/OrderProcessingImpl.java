@@ -1,9 +1,8 @@
 package com.sa.osgi.orderprocessingservice.impl;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
-import com.sa.osgi.barcodescannerservice.IBarcodeScanner;
+
 import com.sa.osgi.orderprocessingservice.IOrderProcessing;
 
 import java.io.*;
@@ -19,7 +18,6 @@ public class OrderProcessingImpl implements IOrderProcessing {
 
     private Map<String, Double> orders = new HashMap<>();
     private ServiceRegistration<IOrderProcessing> registration;
-    private ServiceReference<IBarcodeScanner> barcodeScannerRef;
 
     private static final Logger LOGGER = Logger.getLogger(OrderProcessingImpl.class.getName());
 
@@ -34,17 +32,11 @@ public class OrderProcessingImpl implements IOrderProcessing {
         }
         LOGGER.info("Data directory available: " + dataDir.getAbsolutePath());
 
-        barcodeScannerRef = context.getServiceReference(IBarcodeScanner.class);
-        if (barcodeScannerRef == null) {
-            LOGGER.severe("BarcodeScannerService is not available.");
-            return;
-        }
-
         loadOrders();
         registration = context.registerService(IOrderProcessing.class, this, null);
         LOGGER.info("Order Processing Service started.");
 
-        startScanner(context);
+        startScanner();
     }
 
     public void stop() {
@@ -54,19 +46,27 @@ public class OrderProcessingImpl implements IOrderProcessing {
     }
 
     @Override
-    public double getOrderWeight(String orderId) {
+    public double getOrderAmount(String orderId) {
         return orders.getOrDefault(orderId, 0.0);
     }
 
     @Override
-    public void addOrder(String orderId, double weight) {
-        if (orderId == null || orderId.trim().isEmpty() || weight <= 0) {
-            LOGGER.warning("Invalid order ID or weight.");
+    public void addOrder(String orderId, double amount) {
+        if (orderId == null || orderId.trim().isEmpty() || amount <= 0) {
+            LOGGER.warning("Invalid order ID or amount.");
             return;
         }
-        orders.put(orderId, weight);
+
+        // Add the order to memory and save it to the file
+        orders.put(orderId, amount);
         saveOrders();
-        System.out.println("📦 Order added: " + orderId + ", Weight: " + weight);
+
+        System.out.println("📦 Order added: " + orderId + ", Amount: $" + amount);
+    }
+
+    @Override
+    public Map<String, Double> getAllOrders() {
+        return new HashMap<>(orders); // Return a copy of the orders map to avoid direct modification
     }
 
     private void loadOrders() {
@@ -99,28 +99,18 @@ public class OrderProcessingImpl implements IOrderProcessing {
         }
     }
 
-    private void startScanner(BundleContext context) {
+    private void startScanner() {
         Scanner scanner = new Scanner(System.in);
         System.out.println("[Order Processing] Starting interactive mode. Type 'exit' to quit.");
-        IBarcodeScanner barcodeScanner = context.getService(barcodeScannerRef);
         while (true) {
             System.out.print("[Order Processing] Enter order ID: ");
             String orderId = scanner.nextLine();
             if (orderId.equalsIgnoreCase("exit")) break;
 
-            System.out.print("[Order Processing] Enter package ID: ");
-            String packageId = scanner.nextLine();
-            if (packageId.equalsIgnoreCase("exit")) break;
+            System.out.print("[Order Processing] Enter order amount ($): ");
+            double amount = Double.parseDouble(scanner.nextLine());
 
-            String productName = barcodeScanner.scanPackage(packageId);
-            if (productName.equals("Unknown Package")) {
-                System.out.println("⚠️ Package ID not found: " + packageId);
-                continue;
-            }
-
-            double weight = 5.0; 
-            addOrder(orderId, weight);
-            System.out.println("📦 Order created: " + orderId + ", Package: " + packageId + " (" + productName + "), Weight: " + weight);
+            addOrder(orderId, amount);
         }
         System.out.println("[Order Processing] Interactive mode stopped.");
     }

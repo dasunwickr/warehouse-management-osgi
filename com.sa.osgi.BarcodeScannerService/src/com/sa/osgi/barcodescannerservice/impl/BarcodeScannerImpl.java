@@ -61,6 +61,11 @@ public class BarcodeScannerImpl implements IBarcodeScanner {
         System.out.println("📦 Package added: " + packageId + " - " + productName);
     }
 
+    @Override
+    public Map<String, String> getAllPackages() {
+        return new HashMap<>(packages); // Return a copy of the packages map to avoid direct modification
+    }
+
     private void loadPackages() {
         File file = new File(DATA_FILE);
         try {

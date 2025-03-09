@@ -1,15 +1,12 @@
 package com.sa.osgi.deliveryschedulerservice;
 
-import com.sa.osgi.orderprocessingservice.IOrderProcessing;
-import com.sa.osgi.weightsensorservice.IPackageWeightSensor;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.HashMap;
+import com.sa.osgi.orderprocessingservice.IOrderProcessing;
+import com.sa.osgi.weightsensorservice.IPackageWeightSensor;
+
 import java.util.Map;
 
 public class Activator implements BundleActivator {
@@ -29,31 +26,20 @@ public class Activator implements BundleActivator {
 
             System.out.println("[Delivery Scheduler] Starting delivery scheduling...");
 
-            // Read orders from a text file
-            Map<String, Double> orders = readDataFromFile("D:/projects/sliit/y3s2/sa/warehouse-management-osgi/data/orders.txt");
-
-            // Schedule deliveries for each order
+            // Retrieve orders and generate delivery schedules
+            Map<String, Double> orders = orderProcessing.getAllOrders(); // Retrieve all orders
             for (Map.Entry<String, Double> entry : orders.entrySet()) {
                 String orderId = entry.getKey();
-                double orderWeight = entry.getValue();
+                double amount = entry.getValue();
 
-                // Retrieve additional package weights dynamically
-                double totalWeight = orderWeight; // Base weight
-                System.out.println("📦 Order ID: " + orderId + ", Base Weight: " + orderWeight + " kg");
-
-                // Add package weights dynamically (if needed)
-                // Example: Simulate retrieving package weights from WeightSensorService
+                // Calculate total weight using WeightSensorService
                 double packageWeight = weightSensor.getWeight(orderId);
-                totalWeight += packageWeight;
-                System.out.println("📦 Additional Package Weight: " + packageWeight + " kg");
+                double totalWeight = amount + packageWeight;
 
-                // Calculate shipping cost ($2 per kg)
-                double shippingCost = totalWeight * 2;
-                System.out.println("🚚 Shipping cost for Order ID " + orderId + ": $" + shippingCost);
+                // Determine delivery type based on total weight
+                String deliveryType = totalWeight > 15 ? "Priority Shipping" : "Standard Shipping";
 
-                // Determine delivery type based on shipping cost
-                String deliveryType = shippingCost > 15 ? "Priority Shipping" : "Standard Shipping";
-                System.out.println("🚚 Scheduled delivery for Order ID " + orderId + ": " + deliveryType + " ($" + shippingCost + ")");
+                System.out.println("🚚 Scheduled delivery for Order ID " + orderId + ": " + deliveryType + " (Total Weight: " + totalWeight + " kg)");
             }
 
             System.out.println("[Delivery Scheduler] Delivery scheduling completed.");
@@ -73,27 +59,5 @@ public class Activator implements BundleActivator {
         }
 
         System.out.println("Delivery Scheduler Service stopped.");
-    }
-
-    /**
-     * Reads data from a text file in the format "id:weight".
-     */
-    private Map<String, Double> readDataFromFile(String filePath) {
-        Map<String, Double> data = new HashMap<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(":");
-                if (parts.length == 2) {
-                    String id = parts[0].trim();
-                    double weight = Double.parseDouble(parts[1].trim());
-                    data.put(id, weight);
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("Error reading file: " + filePath);
-            e.printStackTrace();
-        }
-        return data;
     }
 }

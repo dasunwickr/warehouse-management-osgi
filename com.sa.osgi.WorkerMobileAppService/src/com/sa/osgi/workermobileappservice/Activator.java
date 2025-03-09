@@ -5,36 +5,66 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
 import com.osgi.taskschedulerservice.ITaskScheduler;
+import com.sa.osgi.barcodescannerservice.IBarcodeScanner;
+import com.sa.osgi.orderprocessingservice.IOrderProcessing;
+import com.sa.osgi.weightsensorservice.IPackageWeightSensor;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 public class Activator implements BundleActivator {
 
+    private ServiceReference<IBarcodeScanner> barcodeScannerRef;
+    private ServiceReference<IOrderProcessing> orderProcessingRef;
+    private ServiceReference<IPackageWeightSensor> weightSensorRef;
     private ServiceReference<ITaskScheduler> taskSchedulerRef;
 
     @Override
     public void start(BundleContext context) throws Exception {
-        // Get reference to producer service
+        // Get references to producer services
+        barcodeScannerRef = context.getServiceReference(IBarcodeScanner.class);
+        orderProcessingRef = context.getServiceReference(IOrderProcessing.class);
+        weightSensorRef = context.getServiceReference(IPackageWeightSensor.class);
         taskSchedulerRef = context.getServiceReference(ITaskScheduler.class);
 
-        if (taskSchedulerRef != null) {
+        if (barcodeScannerRef != null && orderProcessingRef != null && weightSensorRef != null && taskSchedulerRef != null) {
+            IBarcodeScanner barcodeScanner = context.getService(barcodeScannerRef);
+            IOrderProcessing orderProcessing = context.getService(orderProcessingRef);
+            IPackageWeightSensor weightSensor = context.getService(weightSensorRef);
             ITaskScheduler taskScheduler = context.getService(taskSchedulerRef);
 
             System.out.println("[Worker Mobile App] Starting task assignment...");
 
-            // Read employee tasks from a text file
-            Map<String, String> tasks = readDataFromFile("D:/projects/sliit/y3s2/sa/warehouse-management-osgi/data/tasks.txt");
+            // Step 1: Retrieve all packages
+            Map<String, String> packages = barcodeScanner.getAllPackages(); // Retrieve all packages
+            for (Map.Entry<String, String> packageEntry : packages.entrySet()) {
+                String packageId = packageEntry.getKey();
+                String productName = packageEntry.getValue();
 
-            // Assign tasks to employees
-            for (Map.Entry<String, String> entry : tasks.entrySet()) {
-                String empId = entry.getKey();
-                String task = entry.getValue();
-                taskScheduler.assignTask(empId, task);
-                System.out.println("📱 Task assigned to Employee ID " + empId + ": " + task);
+                // Step 2: Retrieve package weight
+                double weight = weightSensor.getWeight(packageId);
+
+                // Step 3: Check if there's an order for this package
+                Map<String, Double> orders = orderProcessing.getAllOrders(); // Retrieve all orders
+                boolean hasOrder = false;
+                for (Map.Entry<String, Double> orderEntry : orders.entrySet()) {
+                    String orderId = orderEntry.getKey();
+                    double amount = orderEntry.getValue();
+
+                    if (orderId.equals(packageId)) {
+                        hasOrder = true;
+
+                        // Step 4: Assign a task to an employee
+                        String taskDescription = "Process order " + orderId + " for " + productName +
+                                " (Amount: $" + amount + ", Weight: " + weight + " kg)";
+                        taskScheduler.assignTask("EMP001", taskDescription); // Default assignment to EMP001
+                        System.out.println("📝 Task assigned for order: " + orderId);
+                        break;
+                    }
+                }
+
+                if (!hasOrder) {
+                    System.out.println("⚠️ No order found for package ID: " + packageId);
+                }
             }
 
             System.out.println("[Worker Mobile App] Task assignment completed.");
@@ -45,33 +75,20 @@ public class Activator implements BundleActivator {
 
     @Override
     public void stop(BundleContext context) throws Exception {
-        // Unget service
+        // Unget services
+        if (barcodeScannerRef != null) {
+            context.ungetService(barcodeScannerRef);
+        }
+        if (orderProcessingRef != null) {
+            context.ungetService(orderProcessingRef);
+        }
+        if (weightSensorRef != null) {
+            context.ungetService(weightSensorRef);
+        }
         if (taskSchedulerRef != null) {
             context.ungetService(taskSchedulerRef);
         }
 
         System.out.println("Worker Mobile App Service stopped.");
-    }
-
-    /**
-     * Reads data from a text file in the format "empId:task".
-     */
-    private Map<String, String> readDataFromFile(String filePath) {
-        Map<String, String> data = new HashMap<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(":");
-                if (parts.length == 2) {
-                    String empId = parts[0].trim();
-                    String task = parts[1].trim();
-                    data.put(empId, task);
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("Error reading file: " + filePath);
-            e.printStackTrace();
-        }
-        return data;
     }
 }
