@@ -3,6 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: BarcodeScanner
 Bundle-SymbolicName: BarcodeScanner
 Bundle-Version: 1.0.0.qualifier
+Export-Package: com.sa.osgi.barcodescannerservice
 Bundle-Activator: com.sa.osgi.barcodescannerservice.Activator
 Bundle-Vendor: SA
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8

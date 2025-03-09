@@ -1,10 +1,11 @@
-package com.sa.osgi.shippingcostcalculatorservice;
+package com.sa.osgi.deliveryschedulerservice;
 
-import com.sa.osgi.orderprocessingservice.IOrderProcessing;
-import com.sa.osgi.weightsensorservice.IPackageWeightSensor;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+
+import com.sa.osgi.orderprocessingservice.IOrderProcessing;
+import com.sa.osgi.weightsensorservice.IPackageWeightSensor;
 
 import java.util.Scanner;
 
@@ -25,30 +26,25 @@ public class Activator implements BundleActivator {
 
             // Start interactive input
             Scanner scanner = new Scanner(System.in);
-            System.out.println("[Shipping Cost Calculator] Starting interactive mode. Type 'exit' to quit.");
+            System.out.println("[Delivery Scheduler] Starting interactive mode. Type 'exit' to quit.");
 
             while (true) {
-                System.out.print("[Shipping Cost Calculator] Enter order ID: ");
+                System.out.print("[Delivery Scheduler] Enter order ID: ");
                 String orderId = scanner.nextLine();
                 if (orderId.equalsIgnoreCase("exit")) break;
 
-                double orderWeight = orderProcessing.getOrderWeight(orderId);
-                System.out.println("📦 Order weight: " + orderWeight + " kg");
+                double weight = orderProcessing.getOrderWeight(orderId);
+                System.out.println("🚚 Order weight: " + weight);
 
-                System.out.print("[Shipping Cost Calculator] Enter package ID: ");
+                System.out.print("[Delivery Scheduler] Enter package ID: ");
                 String packageId = scanner.nextLine();
                 if (packageId.equalsIgnoreCase("exit")) break;
 
                 double packageWeight = weightSensor.getWeight(packageId);
-                System.out.println("📦 Package weight: " + packageWeight + " kg");
-
-                // Calculate shipping cost
-                double totalWeight = orderWeight + packageWeight;
-                double shippingCost = calculateShippingCost(totalWeight);
-                System.out.println("🚚 Shipping cost: $" + shippingCost);
+                System.out.println("🚚 Package weight: " + packageWeight);
             }
 
-            System.out.println("[Shipping Cost Calculator] Interactive mode stopped.");
+            System.out.println("[Delivery Scheduler] Interactive mode stopped.");
         } else {
             System.out.println("Required services are not available.");
         }
@@ -64,14 +60,6 @@ public class Activator implements BundleActivator {
             context.ungetService(weightSensorRef);
         }
 
-        System.out.println("Shipping Cost Calculator Service stopped.");
-    }
-
-    /**
-     * Calculates the shipping cost based on total weight.
-     * Example formula: $2 per kg.
-     */
-    private double calculateShippingCost(double totalWeight) {
-        return totalWeight * 2.0; // $2 per kg
+        System.out.println("Delivery Scheduler Service stopped.");
     }
 }

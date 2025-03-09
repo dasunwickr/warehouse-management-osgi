@@ -7,5 +7,5 @@ Bundle-Activator: com.sa.osgi.workermobileappservice.Activator
 Bundle-Vendor: MTIT
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Automatic-Module-Name: com.sa.osgi.WorkerMobileAppService
-Import-Package: org.osgi.framework;version="1.3.0"
+Import-Package: org.osgi.framework;version="1.3.0",com.osgi.taskschedulerservice,com.sa.osgi.orderprocessingservice
 Bundle-ActivationPolicy: lazy

@@ -1,4 +1,3 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">
-<refactoring comment="Delete resource &apos;com.sa.barcodescanner&apos;" deleteContents="true" description="Delete resource &apos;com.sa.barcodescanner&apos;" element1="/com.sa.barcodescanner" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1741527011131"/>
+<session version="1.0">&#x0A;<refactoring comment="Delete resource &apos;com.sa.barcodescanner&apos;" deleteContents="true" description="Delete resource &apos;com.sa.barcodescanner&apos;" element1="/com.sa.barcodescanner" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1741527011131"/>&#x0A;<refactoring comment="Rename resource &apos;com.sa.osgi.ShippingSystemService&apos; to &apos;com.sa.osgi.DeliveryScheduleService&apos;" description="Rename resource &apos;com.sa.osgi.ShippingSystemService&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="/com.sa.osgi.ShippingSystemService" name="com.sa.osgi.DeliveryScheduleService" stamp="1741544557027" updateReferences="true"/>
 </session>

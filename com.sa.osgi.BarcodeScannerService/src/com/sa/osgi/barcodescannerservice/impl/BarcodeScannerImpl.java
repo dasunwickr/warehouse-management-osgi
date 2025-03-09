@@ -15,10 +15,6 @@ public class BarcodeScannerImpl implements IBarcodeScanner {
     private static final String DATA_DIR = "D:/projects/sliit/y3s2/sa/warehouse-management-osgi/data";
     private static final String DATA_FILE = DATA_DIR + "/barcodes.txt";
 
-    private static final String EXIT_COMMAND = "exit";
-    private static final String WELCOME_MESSAGE = "[Barcode Scanner] Starting interactive mode. Type 'exit' to quit.";
-    private static final String GOODBYE_MESSAGE = "[Barcode Scanner] Interactive mode stopped. Thank you!";
-
     private Map<String, String> packages = new HashMap<>();
     private ServiceRegistration<IBarcodeScanner> registration;
 
@@ -66,16 +62,6 @@ public class BarcodeScannerImpl implements IBarcodeScanner {
             return;
         }
 
-        if (packages.containsKey(id)) {
-            System.out.print("Package ID already exists. Overwrite? (y/n): ");
-            Scanner scanner = new Scanner(System.in);
-            String choice = scanner.nextLine();
-            if (!choice.equalsIgnoreCase("y")) {
-                System.out.println("Operation canceled.");
-                return;
-            }
-        }
-
         packages.put(id, product);
         savePackages();
         System.out.println("📦 Package added: " + id + " - " + product);
@@ -113,19 +99,19 @@ public class BarcodeScannerImpl implements IBarcodeScanner {
 
     private void startScanner() {
         Scanner scanner = new Scanner(System.in); // Do NOT close this scanner
-        System.out.println(WELCOME_MESSAGE);
+        System.out.println("[Barcode Scanner] Starting interactive mode. Type 'exit' to quit.");
 
         while (true) {
             System.out.print("[Barcode Scanner] Enter package ID: ");
             String id = scanner.nextLine();
-            if (id.equalsIgnoreCase(EXIT_COMMAND)) break;
+            if (id.equalsIgnoreCase("exit")) break;
 
             System.out.print("[Barcode Scanner] Enter product name: ");
             String product = scanner.nextLine();
             addPackage(id, product);
         }
 
-        System.out.println(GOODBYE_MESSAGE);
+        System.out.println("[Barcode Scanner] Interactive mode stopped.");
         // DO NOT CLOSE THE SCANNER HERE
     }
 

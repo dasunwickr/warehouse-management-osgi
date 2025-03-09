@@ -1,4 +1,4 @@
-package com.sa.osgi.inventorymanagerservice;
+package com.sa.osgi.inventory;
 
 import com.sa.osgi.barcodescannerservice.IBarcodeScanner;
 import com.sa.osgi.orderprocessingservice.IOrderProcessing;
@@ -15,7 +15,6 @@ public class Activator implements BundleActivator {
 
     @Override
     public void start(BundleContext context) throws Exception {
-        // Get references to producer services
         barcodeScannerRef = context.getServiceReference(IBarcodeScanner.class);
         orderProcessingRef = context.getServiceReference(IOrderProcessing.class);
 
@@ -23,7 +22,6 @@ public class Activator implements BundleActivator {
             IBarcodeScanner barcodeScanner = context.getService(barcodeScannerRef);
             IOrderProcessing orderProcessing = context.getService(orderProcessingRef);
 
-            // Start interactive input
             Scanner scanner = new Scanner(System.in);
             System.out.println("[Inventory Manager] Starting interactive mode. Type 'exit' to quit.");
 
@@ -51,7 +49,6 @@ public class Activator implements BundleActivator {
 
     @Override
     public void stop(BundleContext context) throws Exception {
-        // Unget services
         if (barcodeScannerRef != null) {
             context.ungetService(barcodeScannerRef);
         }
