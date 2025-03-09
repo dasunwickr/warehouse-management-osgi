@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Orderprocessing
 Bundle-SymbolicName: com.sa.osgi.OrderProcessingService
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: com.osgi.orderprocessing.Activator
+Bundle-Activator: com.sa.osgi.orderprocessingservice.Activator
 Bundle-Vendor: MTIT
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Automatic-Module-Name: com.osgi.orderprocessing

@@ -1,0 +1,21 @@
+package com.sa.osgi.orderprocessingservice;
+
+import com.sa.osgi.orderprocessingservice.impl.OrderProcessingImpl;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+
+public class Activator implements BundleActivator {
+
+    private OrderProcessingImpl orderProcessing;
+
+    @Override
+    public void start(BundleContext context) throws Exception {
+        orderProcessing = new OrderProcessingImpl();
+        orderProcessing.start(context);
+    }
+
+    @Override
+    public void stop(BundleContext context) throws Exception {
+        orderProcessing.stop()
+    }
+}

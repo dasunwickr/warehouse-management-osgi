@@ -1,0 +1,5 @@
+package com.sa.osgi.orderprocessingservice;
+
+public class OrderProcessingImpl {
+
+}
